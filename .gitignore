@@ -1,0 +1,9 @@
+.vs
+__pycache__
+/nsfstub/build
+*.dbg
+*.nes
+*.nsf
+*.nsfe
+*.xml
+*.zip
