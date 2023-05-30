@@ -1,3 +1,4 @@
 [submodule "nsfstub/bhop"]
 	path = nsfstub/bhop
 	url = https://github.com/TheRealQuantam/bhop.git
+	branch = mm2r-makeftnsf
