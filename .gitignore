@@ -6,4 +6,8 @@ __pycache__
 *.nsf
 *.nsfe
 *.xml
+*.dnm
+*.ftm
+*.0cc
+*.7z
 *.zip

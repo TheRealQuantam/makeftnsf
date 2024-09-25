@@ -2,22 +2,19 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>3b196537-c17a-43e5-98c4-bfd3caca5a0a</ProjectGuid>
-    <ProjectHome>
-    </ProjectHome>
-    <StartupFile>makeftnsf.py</StartupFile>
+    <ProjectGuid>60f7def3-99de-4160-861b-9675df7ceaae</ProjectGuid>
+    <ProjectHome>.</ProjectHome>
+    <StartupFile>makeftmeta.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>makeftnsf</Name>
-    <RootNamespace>makec2nsf</RootNamespace>
+    <Name>makeftmeta</Name>
+    <RootNamespace>makeftmeta</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>"H:\Emulation\MegaMan2Randomizer2-mm2ft\MM2RandoLib\Resources\FtSoundTrackConfiguration.xml" "MM2R Ft Soundtrack"</CommandLineArguments>
+    <CommandLineArguments>xml z2ftdemo *.dnm *.ftm</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
-    <Environment>MM2R="H:\Emulation\MegaMan2Randomizer2-mm2ft\MM2RandoLib\Resources"
-NEW="makeftmeta\new.xml"
-MM2R2="H:\Emulation\MegaMan2Randomizer2-mm2ft\MM2RandoLib\Resources\FtSoundTrackConfiguration.xml"</Environment>
+    <Environment>FF=xml "H:\Downloads\FTMs\bhop" "FF 0-8.dnm" "FF 9-23.dnm" "FF2 0-13.dnm" "FF2 14-21.dnm" "FF2 22-29.dnm" "FF3 0-2.dnm" "FF3 3-4.dnm" "FF3 5-6.dnm" "FF3 7-9 No DPCM.dnm" "FF3 10-14.dnm" "FF3 15-18.dnm" "FF3 19-20.dnm" "FF3 21-25.dnm" "FF3 26-29.dnm" "FF3 30-31.dnm" "FF3 32-34 No DPCM.dnm" "FF3 35 The Invincible.dnm" "FF3 36-38.dnm" "FF3 39-40 No DPCM.dnm" "FF3 41-44 No DPCM.dnm" "FF3 45-46.dnm" "FF3 47-54.dnm" "FF3 55 The Everlasting World 2.dnm" "FF3 56-58.dnm" "FF3 60-64.dnm"</Environment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -28,9 +25,15 @@ MM2R2="H:\Emulation\MegaMan2Randomizer2-mm2ft\MM2RandoLib\Resources\FtSoundTrack
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="common.py" />
-    <Compile Include="famitrackerbinary.py" />
-    <Compile Include="makeftnsf.py" />
+    <Compile Include="ftexporter.py" />
+    <Compile Include="makeftmeta.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\makeftnsf.pyproj">
+      <Name>makeftnsf</Name>
+      <Project>{3b196537-c17a-43e5-98c4-bfd3caca5a0a}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

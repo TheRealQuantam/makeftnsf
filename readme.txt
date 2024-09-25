@@ -8,9 +8,10 @@ However, apart from the specific bhop version used, lack of DPCM support, and in
 
 HOW TO USE IT
 
-The easiest way to use makeftnsf is simply to put the FtSoundTrackConfiguration.xml file into the same directory as the Python files and run makeftnsf.py. This will generate FtSoundTrackConfiguration.nsf and FtSoundTrackConfiguration.nsfe. NSFE files contain the track titles and authors, though they are less well-supported (e.g. on flash carts) than NSF files.
+The easiest way to use makeftnsf is simply to put the FtSoundTrackConfiguration.xml file into the same directory as the Python files and run makeftnsf.py. This will generate FtSoundTrackConfiguration.nsf and FtSoundTrackConfiguration.nsfe. NSFe files include track titles and authors, though they are less well-supported (e.g. on flash carts) than NSF files.
 
 LINKS
 
 Mega Man 2 Randomizer repo: https://github.com/squid-man/MegaMan2Randomizer2
 Primary makeftnsf repo: https://github.com/TheRealQuantam/makeftnsf
+bhop repo: https://github.com/zeta0134/bhop

@@ -1,9 +1,9 @@
 # famitrackerbinary.py
-# Copyright 2023 Justin Olbrantz (Quantam)
+# Copyright 2024 Justin Olbrantz (Quantam)
 
 # Module to parse a Dn-FamiTracker BIN export and rebase it.
 
-# This work is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/ or send a letter to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.
+# This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import collections as colls
 import ctypes
@@ -820,7 +820,7 @@ class SongLengthAnalyzer:
 		total_frames = 0
 		order_times = {}
 
-		while order_idx not in order_times and row_idx >= 0:
+		while order_idx not in order_times and order_idx >= 0 and row_idx >= 0:
 			pat_addrs = song.frames[order_idx]
 
 			# Get the pattern length and how it ended
@@ -867,7 +867,7 @@ class SongLengthAnalyzer:
 			order_idx = next_order if next_order is not None else (order_idx + 1) % len(song.frames)
 			row_idx = next_row or 0
 
-		if row_idx >= 0:
+		if order_idx >= 0 and row_idx >= 0:
 			return (order_times[order_idx][0], total_frames - order_times[order_idx][0])
 		else:
 			return (total_frames, 0)

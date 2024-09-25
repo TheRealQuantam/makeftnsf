@@ -1,6 +1,6 @@
 .include "bhop.inc"
 
-.global __BANK0_1_LOAD__, bhop_music_data
+.global __BANK0_1_LOAD__
 
 bhop_music_data := $a000
 
@@ -33,6 +33,11 @@ CurBank: .byte 0
 .segment "BANK0_1"
 TrackMapTable:
 	.res $200, 0
+	
+ModAddrTable:
+	.repeat $100
+	.addr bhop_music_data
+	.endrepeat
 
 .proc PlayStub
 	jmp bhop_play
@@ -44,7 +49,7 @@ TrackMapTable:
 	; Stop playback before changing the banks in case the NMI causes Play to be called.
 	ldx #$0
 	;stx IsPlaying
-	stx Temp1
+	;stx Temp1
 	
 	; Stop playback of anything previously playing
 	;stx ApuStatus_4015
@@ -54,19 +59,35 @@ TrackMapTable:
 	
 	; Load the track map entry
 	asl A
-	rol Temp1
+	tax
+	bcs @HighTrack
 	
-	clc
-	adc #<TrackMapTable
-	sta Temp0
+@LowTrack:
+	lda TrackMapTable + 1, X
+	pha
 	
-	lda Temp1
-	adc #>TrackMapTable
-	sta Temp1
+	lda ModAddrTable, X
+	pha
+	lda ModAddrTable + 1, X
+	tay
 	
+	lda TrackMapTable, X
+
+	bne @Common
+	
+@HighTrack:
+	lda TrackMapTable + $101, X
+	pha
+	
+	lda ModAddrTable + $100, X
+	pha
+	lda ModAddrTable + $101, X
+	tay
+	
+	lda TrackMapTable + $100, X
+
+@Common:
 	; Switch the banks
-	ldy #$0
-	lda (Temp0), Y
 	sta CurBank
 	
 	tax
@@ -75,8 +96,9 @@ TrackMapTable:
 	stx $5ffb
 	
 	; Play the desired track
-	iny
-	lda (Temp0), Y
+	pla
+	tax
+	pla
 	
 	jsr bhop_init
 	

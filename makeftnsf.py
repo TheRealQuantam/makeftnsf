@@ -1,10 +1,11 @@
 # makeftnsf.py
-# Copyright 2023 Justin Olbrantz (Quantam)
+# Copyright 2024 Justin Olbrantz (Quantam)
 
 # Tool to generate a bhop NSF from a Mega Man 2 Randomizer FtSoundTrackConfiguration.xml file to verify tracks work properly in bhop and test CPU usage.
 
-# This work is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/ or send a letter to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.
- 
+# This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+import base64 
 import collections as colls
 from ctypes import c_char, c_byte, c_int8, c_uint8, c_int16, c_uint16, c_uint32, c_int32, Array, Structure, BigEndianStructure, LittleEndianStructure, sizeof, addressof
 from enum import Enum, IntEnum, IntFlag, auto
@@ -15,6 +16,7 @@ import sys
 import traceback
 from typing import *
 import xml.etree.ElementTree
+import zlib
 
 import famitrackerbinary as ftb
 
@@ -23,6 +25,9 @@ mod_bank_base = 0xa000
 max_banks = 256 # NSF mapper banks
 max_tracks = 255
 max_mod_size = 0x2000
+
+# Insert gap at the end of non-looping tracks
+non_looping_gap = 1
 
 # Play 2 loops if the song is short enough
 two_loop_thresh = 90 # Sec
@@ -89,10 +94,11 @@ class Uses(IntFlag):
 	StageSelect = auto()
 	Stage = auto()
 	Boss = auto()
+	Refights = auto()
 	Credits = auto()
 
 default_uses = Uses.Stage | Uses.Credits
-usage_map = {usage.name: usage for usage in Uses}
+usage_map = {usage.name.lower(): usage for usage in Uses}
 
 class TrackEntry(NamedTuple):
 	module: "ModuleEntry"
@@ -183,7 +189,7 @@ def parse_uses(uses_el: Optional[xml.etree.ElementTree.Element]) -> Optional[Use
 
 	uses = Uses(0)
 	for usage_el in uses_el.iter("Usage"):
-		uses |= usage_map[usage_el.text]
+		uses |= usage_map[usage_el.text.lower()]
 
 	return uses
 
@@ -205,6 +211,18 @@ def load_mod_list(path: Path) -> Sequence[ModuleEntry]:
 			if uses is None:
 				uses = default_uses
 
+			data_str = values.get("Data")
+			if data_str is not None:
+				int_data = data_str.encode("ascii")
+				
+				if int_data.startswith(b"deflate:"):
+					data = zlib.decompress(base64.standard_b64decode(data_str[8:]))
+				else:
+					data = base64.standard_b64decode(int_data)
+				
+			else:
+				data = bytes.fromhex(values["TrackData"])
+				
 			tracks: Dict[int, TrackEntry] = colls.OrderedDict()
 			mod = ModuleEntry(
 				values["Title"],
@@ -212,7 +230,7 @@ def load_mod_list(path: Path) -> Sequence[ModuleEntry]:
 				values.get("Enabled", "true").lower() == "true",
 				uses,
 				int(values.get("StartAddress", "0"), 16),
-				bytes.fromhex(values["TrackData"]),
+				data,
 				values.get("SwapSquareChans", "false").lower() == "true",
 				tracks,
 			)
@@ -293,7 +311,10 @@ def append_banks(banks: List[ByteString], data: ByteString, start_offs: int = 0)
 
 	return num_banks
 
-def import_file_mods(banks: List[ByteString], file_mods: Sequence[ModuleEntry]) -> Tuple[Sequence[TrackMapEntry], Sequence[Tuple[float, float]], Sequence[str], Sequence[str]]:
+def import_file_mods(
+	banks: List[ByteString], 
+	file_mods: Sequence[ModuleEntry],
+) -> Tuple[Sequence[TrackMapEntry], Sequence[Tuple[float, float]], Sequence[str], Sequence[str]]:
 	"""Load the previously selected modules and pack them into banks."""
 
 	track_map = []
@@ -438,6 +459,8 @@ def main() -> None:
 	if not xml_path:
 		return
 
+	out_name = sys.argv[2] if len(sys.argv) > 2 else xml_path.stem
+
 	mods = load_mod_list(xml_path)
 
 	# Load the stub
@@ -465,7 +488,7 @@ def main() -> None:
 
 		# Write the NSF
 		num_str = str(file_idx) if file_idx or mod_idx < len(mods) else ""
-		out_path = Path(f"{xml_path.stem}{num_str}.nsf")
+		out_path = Path(f"{out_name}{num_str}.nsf")
 		write_nsf(out_path, hdr, banks, file_mods)
 
 		# Write the NSFe
@@ -473,14 +496,17 @@ def main() -> None:
 		fade_lens_ms = []
 		for intro_len, loop_len in track_lens:
 			total_len = intro_len + loop_len
-			if loop_len:
+			if loop_len > 0:
 				if total_len / 60 <= four_loop_thresh:
 					total_len += loop_len * 3
 				elif total_len / 60 <= two_loop_thresh:
 					total_len += loop_len
+					
+			else:
+				total_len += non_looping_gap * 60
 
 			track_lens_ms.append(int(math.ceil(total_len * 1000 / 60)))
-			fade_lens_ms.append(15000 if loop_len else 1000)
+			fade_lens_ms.append(15000 if loop_len else 0)
 
 		out_path = out_path.with_suffix(".nsfe")
 		write_nsfe(out_path, hdr, banks, file_mods, track_lens_ms, fade_lens_ms, titles, authors)
